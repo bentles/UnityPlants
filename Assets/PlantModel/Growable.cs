@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Growable : IRenderable
@@ -16,18 +17,20 @@ public abstract class Growable : IRenderable
 
     /// <param name="time">Elapsed time</param>
     /// <returns>If we should re-render</returns>
-    public virtual bool Grow(float time)
+    public bool Grow(float time)
     {
         ElapsedTime += time;
 
-        while (ElapsedTime > Plant.GrowthStepTime)
+        while (ElapsedTime > Plant.GrowthStepTime && Age < Plant.MaxAge)
         {
             Age++;
             ElapsedTime -= Plant.GrowthStepTime;
         }
 
-        return false;
+        return Age < Plant.MaxAge && ChildGrowth(time);
     }
+
+    public abstract bool ChildGrowth(float time);
 
     private bool _justSprouted;
     public bool JustSprouted { get { return _justSprouted; } }

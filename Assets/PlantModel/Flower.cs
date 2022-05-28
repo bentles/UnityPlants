@@ -12,6 +12,11 @@ public class Flower : Growable
 
     public override Growable Child { get; set; } = null;
 
+    public override bool ChildGrowth(float time)
+    {
+        return false;
+    }
+
     public override void Render(MeshData data, System.Random random, Vector3 translation, Quaternion rotation)
     {
         //TODO:

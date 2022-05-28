@@ -13,6 +13,8 @@ public class Plant : MonoBehaviour
 
     Stem Child;
     public int MaxAge = 30;
+
+    public int StartAge = 20;
     public int RandomSeed;
     public float GrowthStepTime = 0.3f;
 
@@ -35,6 +37,9 @@ public class Plant : MonoBehaviour
         {
             Sprouted = true,
         };
+
+        //grow to start age
+        Child.Grow(GrowthStepTime * StartAge);
         
     }
 

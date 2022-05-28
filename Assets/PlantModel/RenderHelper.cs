@@ -5,22 +5,22 @@ using UnityEngine;
 public static class RenderHelper
 {
 
-    public static void CreateCylinder(MeshData data, Vector3 translation, Quaternion rotation, Growable g, float height)
+    public static void CreateBranchSegment(MeshData data, Vector3 translation, Quaternion rotation, Growable g, float height)
     {        
         var botR = g.CalcRadius(g.Age);
         if (g.Child != null)
         {
             var topR = g.CalcRadius(g.Child.Age);
-            RenderHelper.CreateCylinder(data, translation, rotation, botR: botR, topR: topR, height: height);
+            RenderHelper.CreateBranchSegment(data, translation, rotation, botR: botR, topR: topR, height: height);
         }
         else
         {
-            RenderHelper.CreateCylinder(data, translation, rotation, botR: botR, topR: 0.0f, height: height);
+            RenderHelper.CreateBranchSegment(data, translation, rotation, botR: botR, topR: 0.0f, height: height);
         }
 
     }
 
-    public static void CreateCylinder(MeshData data, Vector3 translation, Quaternion rotation, int faces = 5, float height = 1, float topR = 1, float botR = 1)
+    public static void CreateBranchSegment(MeshData data, Vector3 translation, Quaternion rotation, int faces = 5, float height = 1, float topR = 1, float botR = 1)
     {
         int countBefore = data.Vertices.Count;
 

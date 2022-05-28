@@ -15,49 +15,57 @@ public class Tip : Growable
     public Stem Parent { get; private set; }
     public override Growable Child { get; set; } = null;
 
-    public override bool Grow(float time)
+
+    public override bool ChildGrowth(float time)
     {
-        base.Grow(time);
+        NaiveGrowthLogic(time);
 
-        //decide when to make chidrens
-        NaiveGrowthLogic();
-
-        return JustSprouted;
+        return JustSprouted; //hmm
     }
 
-    private void NaiveGrowthLogic()
+    private void NaiveGrowthLogic(float time)
     {
         if (Age >= 2 && !Sprouted)
         {
             Sprouted = true;
             var rand = UnityEngine.Random.Range(0, 1f);
+            Growable newStemOrNode;
             if (rand < 0.1f)
             {
-                StemTip();
+                newStemOrNode = StemTip();
             }
             else
             {
-                NodeStemTip();
+                newStemOrNode = NodeStemTip();
             }
+
+            newStemOrNode.Grow(time - 2 * Plant.GrowthStepTime);
         }
     }
 
-    private void StemTip()
+    // can i make this less messy?
+    
+    private Stem StemTip()
     {
         var stem = new Stem(this, Plant);
         Parent.Child = stem;
         Parent = stem;
+
+        return stem;
     }
 
-    private void NodeStemTip()
+    private Node NodeStemTip()
     {
         var stem = new Stem(this, Plant);
-        Parent.Child = new Node(stem, Plant);
+        var node = new Node(stem, Plant);
+        Parent.Child = node;
         Parent = stem;
+
+        return node;
     }
 
     public override void Render(MeshData data, System.Random random, Vector3 translation, Quaternion rotation)
     {
-        RenderHelper.CreateCylinder(data, translation, rotation, this, height: 0.2f * Height);
+        RenderHelper.CreateBranchSegment(data, translation, rotation, this, height: 0.2f * Height);
     }
 }
