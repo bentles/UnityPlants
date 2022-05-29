@@ -10,6 +10,7 @@ public class Plant : MonoBehaviour
     public MeshData meshData;
     public AnimationCurve radiusCurve;
     public AnimationCurve heightCurve;
+    public Camera cameraReference;
 
     Stem Child;
     public int MaxAge = 30;
@@ -17,6 +18,11 @@ public class Plant : MonoBehaviour
     public int StartAge = 20;
     public int RandomSeed;
     public float GrowthStepTime = 0.3f;
+    public bool LevelOfDetail = false;
+    public float LevelOfDetailScale = 0.2f;
+    public float LevelOfDetailMinAge = 8;
+
+    public int LodCutOff { get; set; } = int.MaxValue;
 
     // Start is called before the first frame update
     void Start()
@@ -25,34 +31,52 @@ public class Plant : MonoBehaviour
         {
             Vertices = new List<Vector3>(),
             Triangles = new List<int>(),
+            Uvs = new List<Vector2>(),
             LeafTriangles = new List<int>(),
         };
 
         mesh = new Mesh();
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.subMeshCount = 2;
+        mesh.MarkDynamic();
+
         GetComponent<MeshFilter>().mesh = mesh;
         RandomSeed = 112;
-        Child = new Stem(this)
-        {
-            Sprouted = true,
-        };
+        Child = new Stem(this);
 
         //grow to start age
         Child.Grow(GrowthStepTime * StartAge);
-        
     }
 
+    internal int CalcLodCutoff()
+    {
+        if (cameraReference == null)
+        {
+            return 0;
+        }
+
+        float distToCamera = LevelOfDetailScale * Vector3.Distance(transform.position, cameraReference.transform.position);
+        return Mathf.FloorToInt(distToCamera);
+    }
 
     private void Update()
     {
+        var newLod = CalcLodCutoff();
+        var hasNewLodLevel = newLod != LodCutOff;
+        LodCutOff = newLod;
+
         var hasGrown = Child.Grow(Time.deltaTime);
-        if (hasGrown)
+        if (hasGrown || hasNewLodLevel)
         {
-            Reset();
-            RenderGrowable(Child, new System.Random(RandomSeed));
-            UpdateMesh();
+            ReRender();
         }
+    }
+
+    private void ReRender()
+    {
+        Reset();
+        RenderGrowable(Child, new System.Random(RandomSeed));
+        UpdateMesh();
     }
 
     private void Reset()
@@ -66,6 +90,9 @@ public class Plant : MonoBehaviour
         mesh.subMeshCount = 2;
         mesh.SetVertices(meshData.Vertices);
         mesh.SetTriangles(meshData.Triangles, 0);
+        mesh.SetUVs(0, meshData.Uvs);
+
+
         mesh.SetTriangles(meshData.LeafTriangles, 1);
         mesh.RecalculateNormals();
     }

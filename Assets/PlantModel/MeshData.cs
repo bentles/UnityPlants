@@ -6,11 +6,13 @@ public class MeshData
     public List<Vector3> Vertices { get; set; }
     public List<int> Triangles { get; set; }
     public List<int> LeafTriangles { get; set; }
+    public List<Vector2> Uvs { get; internal set; }
 
     public void Clear()
     {
         Vertices.Clear();
         Triangles.Clear();
         LeafTriangles.Clear();
+        Uvs.Clear();
     }
 }

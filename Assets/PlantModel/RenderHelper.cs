@@ -34,7 +34,10 @@ public static class RenderHelper
                     Mathf.Sin(facePos * i) * botR,
                     0,
                     Mathf.Cos(facePos * i) * botR));
+
+            
             data.Vertices.Add(newBot);
+            data.Uvs.Add(new Vector2((1f / faces) * i, UnityEngine.Random.Range(0f, 1f)));
         }
 
         if (topR == 0.0f)
@@ -46,6 +49,7 @@ public static class RenderHelper
                     height,
                     topR));
             data.Vertices.Add(newTop);
+            data.Uvs.Add(new Vector2(0.5f, 1));
         }
 
 
@@ -77,6 +81,14 @@ public static class RenderHelper
         var countBefore = data.Vertices.Count;
 
         data.Vertices.AddRange(new List<Vector3>
+                {
+                    translation + rotation * new Vector3(0,0,0) * size,
+                    translation + rotation * new Vector3(0,0,0.5f)  * size,
+                    translation + rotation * new Vector3(0.5f,0,0) * size,
+                    translation + rotation * new Vector3(0.7f,0,0.7f)  * size,
+                });
+
+        data.Uvs.AddRange(new List<Vector2>
                 {
                     translation + rotation * new Vector3(0,0,0) * size,
                     translation + rotation * new Vector3(0,0,0.5f)  * size,

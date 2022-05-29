@@ -21,10 +21,15 @@ public abstract class Growable : IRenderable
     {
         ElapsedTime += time;
 
-        while (ElapsedTime > Plant.GrowthStepTime && Age < Plant.MaxAge)
+        var startAge = Age;
+
+        if (ElapsedTime > Plant.GrowthStepTime && Age < Plant.MaxAge)
         {
-            Age++;
-            ElapsedTime -= Plant.GrowthStepTime;
+            var div = Mathf.FloorToInt(ElapsedTime / Plant.GrowthStepTime);
+            div = Mathf.Min(div, Plant.MaxAge - Age);
+
+            Age += div;
+            ElapsedTime -= Plant.GrowthStepTime * div;
         }
 
         return Age < Plant.MaxAge && ChildGrowth(time);

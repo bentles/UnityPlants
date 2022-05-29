@@ -79,7 +79,10 @@ public class Node : Growable
         Children = new List<Growable>();
         for (int i = 0; i < n; i++)
         {
-            Children.Add(new Stem(Plant));
+            Children.Add(new Stem(Plant)
+            {
+                Age = -5
+            });
         }
     }
 
