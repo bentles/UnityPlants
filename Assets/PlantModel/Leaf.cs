@@ -1,6 +1,8 @@
+using Assets.PlantModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class Leaf : Growable
@@ -16,12 +18,12 @@ public class Leaf : Growable
         return false;
     }
 
-    public override void Render(MeshData data, System.Random random, Vector3 translation, Quaternion rotation)
+    public override void Render(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
     {
         if (Age < 13)
         {
             var leafRandom = 0.8f + 0.2f * CachedRandomValue(0, random);
-            RenderHelper.CreateLeaf(data, translation, rotation, (Age / 13f) * 0.5f * leafRandom);
+            RenderHelper.CreateLeaf(data, renderContext.Translation, renderContext.Rotation, (Age / 13f) * 0.5f * leafRandom);
         }
     }
 }

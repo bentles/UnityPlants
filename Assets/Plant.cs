@@ -1,8 +1,13 @@
+using Assets.PlantModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
+
+[ExecuteInEditMode]
 [RequireComponent(typeof(MeshFilter))]
 public class Plant : MonoBehaviour
 {
@@ -21,6 +26,10 @@ public class Plant : MonoBehaviour
     public bool LevelOfDetail = false;
     public float LevelOfDetailScale = 0.2f;
     public float LevelOfDetailMinAge = 8;
+
+
+    private Task RecreateMeshTask;
+    CancellationTokenSource MeshTokenSource;
 
     public int LodCutOff { get; set; } = int.MaxValue;
 
@@ -44,8 +53,12 @@ public class Plant : MonoBehaviour
         RandomSeed = 112;
         Child = new Stem(this);
 
+        MeshTokenSource = new CancellationTokenSource();
+
         //grow to start age
         Child.Grow(GrowthStepTime * StartAge);
+
+
     }
 
     internal int CalcLodCutoff()
@@ -61,27 +74,39 @@ public class Plant : MonoBehaviour
 
     private void Update()
     {
+        if (Child == null)
+        {
+            Start();
+        }
+
         var newLod = CalcLodCutoff();
         var hasNewLodLevel = newLod != LodCutOff;
         LodCutOff = newLod;
 
         var hasGrown = Child.Grow(Time.deltaTime);
+
         if (hasGrown || hasNewLodLevel)
         {
-            ReRender();
+            //cancel previous token's task
+            MeshTokenSource.Cancel();
+
+            MeshTokenSource = new CancellationTokenSource();
+            var ct = MeshTokenSource.Token;
+
+            RecreateMeshTask = Task.Run(() => CreateMeshData(ct), ct);
+        }
+
+        if (RecreateMeshTask != null && RecreateMeshTask.IsCompleted)
+        {
+            UpdateMesh();
+            RecreateMeshTask = null;
         }
     }
 
-    private void ReRender()
-    {
-        Reset();
-        RenderGrowable(Child, new System.Random(RandomSeed));
-        UpdateMesh();
-    }
-
-    private void Reset()
+    private void CreateMeshData(CancellationToken ct)
     {
         meshData.Clear();
+        RenderGrowable(Child, new System.Random(RandomSeed), ct);
     }
 
     private void UpdateMesh()
@@ -91,7 +116,7 @@ public class Plant : MonoBehaviour
         mesh.SetVertices(meshData.Vertices);
         mesh.SetTriangles(meshData.Triangles, 0);
         mesh.SetUVs(0, meshData.Uvs);
-
+        
 
         mesh.SetTriangles(meshData.LeafTriangles, 1);
         mesh.RecalculateNormals();
@@ -99,19 +124,21 @@ public class Plant : MonoBehaviour
 
     //I would like for this to be a pure function (must take a seed for rng stuff)
     //I would like to be able to lerp between growables in any state and see the render transform... somehow
-    private void RenderGrowable(Growable g, System.Random random)
+    private void RenderGrowable(Growable g, System.Random random, CancellationToken ct)
     {
-        RenderGrowable(g, random, Vector3.zero, Quaternion.identity);
-    }
-
-    private void RenderGrowable(Growable g, System.Random random, Vector3 translation, Quaternion rotation)
-    {
-        if (g is null)
+        if (g is null || ct.IsCancellationRequested)
         {
             return;
         }
 
-        g.Render(meshData, random, translation, rotation);
+        var renderContext = new RenderContext
+        {
+            Distance = 0,
+            Translation = Vector3.zero,
+            Rotation = Quaternion.identity
+        };
+
+        g.Render(meshData, random, renderContext, ct);
     }
 
 

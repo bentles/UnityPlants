@@ -1,6 +1,8 @@
+using Assets.PlantModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class Stem : Growable
@@ -74,16 +76,19 @@ public class Stem : Growable
         Child = node;
     }
 
-    public override void Render(MeshData data, System.Random random, Vector3 translation, Quaternion rotation)
+    public override void Render(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
     {
-        if (Age < 0)
+        var translation = renderContext.Translation;
+        var rotation = renderContext.Rotation;
+
+        if (Age < 0 || ct.IsCancellationRequested)
         {
             return;
         }
 
         if(IsTip)
         {
-            RenderTip(data, translation, rotation);
+            RenderTip(data, renderContext);
             return;
         }
 
@@ -91,30 +96,41 @@ public class Stem : Growable
         if (!Plant.LevelOfDetail ||
             (Plant.LevelOfDetail && Age > Mathf.Min(Plant.LodCutOff, Plant.LevelOfDetailMinAge)))
         {
-            RenderBranchSegment(data, random, translation, rotation);
+            RenderBranchSegment(data, random, renderContext, ct);
         }
         else
         {
             //TODO: possibly can make this more sophisticated
-            RenderTip(data, translation, rotation);
+            RenderTip(data, renderContext);
         }
 
     }
 
-    private void RenderBranchSegment(MeshData data, System.Random random, Vector3 translation, Quaternion rotation)
+    private void RenderBranchSegment(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
     {
+        var rotation = renderContext.Rotation;
+        var translation = renderContext.Translation;
+
         var radial = Quaternion.AngleAxis(CachedRandomValue(0, random) * 360f, rotation * Vector3.up);
         var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, rotation * radial * Vector3.forward);
 
         var offset = Height;
-        RenderHelper.CreateBranchSegment(data, translation, rotation, this, height: offset);
+        RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
 
-        Child.Render(data, random, translation + rotation * new Vector3(0f, offset, 0f), ang * rotation);
+        var childRenderContext = new RenderContext
+        {
+            Translation = translation + rotation * new Vector3(0f, offset, 0f),
+            Rotation = ang * rotation
+        };
+        childRenderContext.Distance = renderContext.Distance + Vector3.Distance(translation, childRenderContext.Translation);
+
+
+        Child.Render(data, random, childRenderContext, ct);
     }
 
-    private void RenderTip(MeshData data, Vector3 translation, Quaternion rotation)
+    private void RenderTip(MeshData data, RenderContext renderContext)
     {
         var offset = Height;
-        RenderHelper.CreateBranchSegment(data, translation, rotation, topR: 0f, botR: CalcRadius(Age), height: offset);
+        RenderHelper.CreateBranchSegment(data, renderContext, topR: 0f, botR: CalcRadius(Age), height: offset);
     }
 }

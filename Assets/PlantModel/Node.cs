@@ -1,6 +1,8 @@
+using Assets.PlantModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class Node : Growable
@@ -51,7 +53,7 @@ public class Node : Growable
             }
             else
             {
-                StemTips(3);
+                StemTips(2);
             }
         }
     }
@@ -86,16 +88,30 @@ public class Node : Growable
         }
     }
 
-    public override void Render(MeshData data, System.Random random, Vector3 translation, Quaternion rotation)
+    public override void Render(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
     {
+        if (ct.IsCancellationRequested)
+        {
+            return;
+        }
+
+        var rotation = renderContext.Rotation;
+        var translation = renderContext.Translation;
+
         var radial = Quaternion.AngleAxis(CachedRandomValue(0, random) * 360f, rotation * Vector3.up);
         var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, rotation * radial * Vector3.forward);
 
         var offset = 0.5f * Height;
-        RenderHelper.CreateBranchSegment(data, translation, rotation, this, height: offset);
+        RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
+
+        var childRenderContext = new RenderContext
+        {
+            Translation = translation + rotation * new Vector3(0f, offset, 0f),
+            Rotation = ang * rotation,
+        };
+        childRenderContext.Distance = renderContext.Distance + Vector3.Distance(translation, childRenderContext.Translation);
         
-        Child.Render(data, random, translation + rotation * new Vector3(0f, offset, 0f), ang * rotation);
-        
+        Child.Render(data, random, childRenderContext, ct);
 
         var angle = 360f / Children.Count;
         var child_ang = Quaternion.AngleAxis(CachedRandomValue(2, random) * 45f, rotation * Vector3.forward);
@@ -104,7 +120,15 @@ public class Node : Growable
         {
             var rad = Quaternion.AngleAxis(CachedRandomValue(3 + i, random) + angle * i, rotation * Vector3.up);
             Growable child = Children[i];
-            child.Render(data, random, translation, rad * child_ang * rotation);
+
+            var childiRenderContext = new RenderContext
+            {
+                Translation = translation,
+                Rotation = rad * child_ang * rotation,
+            };
+            childRenderContext.Distance = renderContext.Distance + Vector3.Distance(translation, childRenderContext.Translation);
+
+            child.Render(data, random, childiRenderContext, ct);
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Assets.PlantModel;
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public abstract class Growable : IRenderable
@@ -85,7 +87,7 @@ public abstract class Growable : IRenderable
         return Plant.radiusCurve.Evaluate(age);
     }
 
-    public abstract void Render(MeshData meshData, System.Random random, Vector3 translation, Quaternion rotation);
+    public abstract void Render(MeshData meshData, System.Random random, RenderContext renderContext, CancellationToken ct);
 
     public abstract Growable Child { get; set; }
 
