@@ -3,13 +3,56 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 
 public static class RenderHelper
 {
+    public static List<Vector3> CylinderVerticesTemplate;
+    public static List<Vector2> CylinderUvsTemplate;
+
+    const int faces = 6;
+
+    static RenderHelper()
+    {
+        var facePos = 2 * Mathf.PI / faces;
+        var facePosUv = 1f / faces;
+
+        Vector3[] Vertices = new Vector3[faces + 1];
+        Vector2[] Uvs = new Vector2[faces + 1];
+
+        for (int i = 0; i < faces; i++)
+        {
+            var newBottomVertex =
+                 new Vector3(
+                    Mathf.Sin(facePos * i),
+                    0,
+                    Mathf.Cos(facePos * i));
+
+
+            Vertices[i] = newBottomVertex;
+            Uvs[i] = new Vector2(facePosUv * i, 0f);
+        }
+
+        //add another vertex here for the UV to be nicer
+        var endBottomVertex =
+                 new Vector3(
+                    Mathf.Sin(0),
+                    0,
+                    Mathf.Cos(0));
+
+
+        Vertices[faces] = endBottomVertex;
+        Uvs[faces] = new Vector2(1f, 0f);
+
+        CylinderVerticesTemplate = Vertices.ToList();
+        CylinderUvsTemplate = Uvs.ToList();
+    }
+
+
 
     public static void CreateBranchSegment(MeshData data, RenderContext renderContext, Growable g, float height)
-    {        
+    {
         var botR = g.CalcRadius(g.Age);
         if (g.Child != null)
         {
@@ -23,36 +66,18 @@ public static class RenderHelper
 
     }
 
-    public static void CreateBranchSegment(MeshData data, RenderContext renderContext, int faces = 5, float height = 1, float topR = 1, float botR = 1)
+    public static void CreateBranchSegment(MeshData data, RenderContext renderContext, float height = 1, float topR = 1, float botR = 1)
     {
         int countBefore = data.Vertices.Count;
 
-        var facePos = 2 * Mathf.PI / faces;
-
         //add bottom circle
-        for (int i = 0; i < faces; i++)
+        for (int i = 0; i < CylinderVerticesTemplate.Count; i++)
         {
-            var newBottomVertex = renderContext.Translation + renderContext.Rotation * (
-                 new Vector3(
-                    Sin(facePos * i) * botR,
-                    0,
-                    Cos(facePos * i) * botR));
-
-            
+            var newBottomVertex = renderContext.Translation + renderContext.Rotation * 
+                CylinderVerticesTemplate[i] * botR;
             data.Vertices.Add(newBottomVertex);
-            data.Uvs.Add(new Vector2((1f / (faces)) * i, renderContext.Distance ));
+            data.Uvs.Add(CylinderUvsTemplate[i] + new Vector2( 0f , renderContext.Distance));
         }
-
-        //add another vertex here for the UV to be nice
-        var endBottomVertex = renderContext.Translation + renderContext.Rotation * (
-                 new Vector3(
-                    Sin(0) * botR,
-                    0,
-                    Cos(0) * botR));
-
-
-        data.Vertices.Add(endBottomVertex);
-        data.Uvs.Add(new Vector2(1f , renderContext.Distance ));
 
         if (topR == 0.0f)
         {
@@ -66,15 +91,13 @@ public static class RenderHelper
             data.Uvs.Add(new Vector2(0.5f, (renderContext.Distance + height)));
         }
 
-
-
         for (int i = 0; i < faces; i++)
         {
             var botRight = countBefore + (i + 1);
             var bot = countBefore + i;
             int top;
             int topRight;
-            
+
             if (topR != 0.0f)
             {
                 top = countBefore + i + (faces + 1);
@@ -87,7 +110,7 @@ public static class RenderHelper
 
             data.Triangles.AddRange(new[] { bot, botRight, top, });
             data.Triangles.AddRange(new[] { top, botRight, topRight });
-        }        
+        }
     }
 
     public static void CreateLeaf(MeshData data, Vector3 translation, Quaternion rotation, float size)
@@ -122,28 +145,5 @@ public static class RenderHelper
                 countBefore + 3, countBefore + 5, countBefore + 4
             });
     }
-
-    //Since each cylinder is the same sin and cos can be memoised
-    private static ConcurrentDictionary<float, float> SinMemo = new ConcurrentDictionary<float, float>();
-    private static ConcurrentDictionary<float, float> CosMemo = new ConcurrentDictionary<float, float>();
-
-    private static float Sin(float f)
-    {
-        if (!SinMemo.ContainsKey(f))
-        {
-            SinMemo[f] = Mathf.Sin(f);
-        }
-        return SinMemo[f];
-    }
-
-    private static float Cos(float f)
-    {
-        if (!CosMemo.ContainsKey(f))
-        {
-            CosMemo[f] = Mathf.Cos(f);
-        }
-        return CosMemo[f];
-    }
-
 
 }

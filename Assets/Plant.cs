@@ -116,7 +116,6 @@ public class Plant : MonoBehaviour
         mesh.SetVertices(meshData.Vertices);
         mesh.SetTriangles(meshData.Triangles, 0);
         mesh.SetUVs(0, meshData.Uvs);
-        
 
         mesh.SetTriangles(meshData.LeafTriangles, 1);
         mesh.RecalculateNormals();
