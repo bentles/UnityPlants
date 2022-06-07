@@ -96,24 +96,30 @@ public static class RenderHelper
 
         data.Vertices.AddRange(new List<Vector3>
                 {
-                    translation + rotation * new Vector3(0,0,0) * size,
+                    translation + rotation * new Vector3(0, 0, 0) * size,
                     translation + rotation * new Vector3(0,0,0.5f)  * size,
                     translation + rotation * new Vector3(0.5f,0,0) * size,
-                    translation + rotation * new Vector3(0.7f,0,0.7f)  * size,
+                    translation + rotation * new Vector3(0.2f,0,0.3f)  * size,
+                    translation + rotation * new Vector3(0.3f,0,0.2f) * size,
+                    translation + rotation * new Vector3(0.5f,0,0.5f)  * size,
                 });
 
         data.Uvs.AddRange(new List<Vector2>
                 {
-                    translation + rotation * new Vector3(0,0,0) * size,
-                    translation + rotation * new Vector3(0,0,0.5f)  * size,
-                    translation + rotation * new Vector3(0.5f,0,0) * size,
-                    translation + rotation * new Vector3(0.7f,0,0.7f)  * size,
+                    new Vector2(0, 0),
+                    new Vector2(0, 0.8f) ,
+                    new Vector2(0.8f, 0),
+                    new Vector2(0.2f, 0.6f) ,
+                    new Vector2(0.6f, 0.2f),
+                    new Vector2(0.8f, 0.8f) ,
                 });
 
         data.LeafTriangles.AddRange(new List<int>
             {
                 countBefore, countBefore + 1, countBefore + 2,
-                countBefore + 1, countBefore + 3, countBefore + 2
+                countBefore + 1, countBefore + 3, countBefore + 2,
+                countBefore + 2, countBefore + 3, countBefore + 4,
+                countBefore + 3, countBefore + 5, countBefore + 4
             });
     }
 
