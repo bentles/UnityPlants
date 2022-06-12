@@ -9,7 +9,7 @@ public class Stem : Growable
 {
     public bool IsTip { get; set; } = true;
 
-    public Stem(Growable child, Plant plant): base(plant)
+    public Stem(Growable child, Plant plant) : base(plant)
     {
         Child = child;
         child.Reset();
@@ -25,28 +25,28 @@ public class Stem : Growable
     public override Growable Child { get { return _child; } set { _child = value; IsTip = value == null; } }
 
 
-    public override bool ChildGrowth(float time)
+    public override bool ChildGrowth()
     {
-        var timeLeft = NaiveGrowthLogic(time);
-
+        NaiveGrowthLogic();
         if (Child != null)
         {
-            return Child.Grow(timeLeft);
+            //grandchild grew
+            return Child.Grow();
         }
 
         return false;
     }
 
-    private float NaiveGrowthLogic(float time)
+    private void NaiveGrowthLogic()
     {
         if (!IsTip)
         {
-            return time; //only the tip can grow
+            return; //only the tip can grow
         }
 
-        if (Age >= 2 && !Sprouted)
+        // it is the tip so can grow:
+        if (Age >= 2 && Child == null)
         {
-            Sprouted = true;
             var rand = UnityEngine.Random.Range(0, 1f);
             if (rand < 0.1f)
             {
@@ -57,10 +57,7 @@ public class Stem : Growable
                 NodeStemTip();
             }
 
-            return time - 2 * Plant.GrowthStepTime;
         }
-
-        return time;
     }
 
     private void StemTip()
@@ -86,7 +83,7 @@ public class Stem : Growable
             return;
         }
 
-        if(IsTip)
+        if (IsTip)
         {
             RenderTip(data, renderContext);
             return;
@@ -112,7 +109,7 @@ public class Stem : Growable
         var translation = renderContext.Translation;
 
         var radial = Quaternion.AngleAxis(CachedRandomValue(0, random) * 360f, rotation * Vector3.up);
-        var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, rotation * radial * Vector3.forward);
+        var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, radial * Vector3.forward);
 
         var offset = Height;
         RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
@@ -124,12 +121,17 @@ public class Stem : Growable
         };
         childRenderContext.Distance = renderContext.Distance + Vector3.Distance(translation, childRenderContext.Translation);
 
+        //Debug.Log("stem");
+        //Debug.Log(CachedRandomValue(0, random));
+        //Debug.Log(CachedRandomValue(1, random));
 
         Child.Render(data, random, childRenderContext, ct);
     }
 
     private void RenderTip(MeshData data, RenderContext renderContext)
     {
+       // Debug.Log("tip");
+
         var offset = Height;
         RenderHelper.CreateBranchSegment(data, renderContext, topR: 0f, botR: CalcRadius(Age), height: offset);
     }

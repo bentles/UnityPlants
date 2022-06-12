@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 [RequireComponent(typeof(MeshFilter))]
 public class Plant : MonoBehaviour
 {
@@ -27,6 +27,7 @@ public class Plant : MonoBehaviour
     public float LevelOfDetailScale = 0.2f;
     public float LevelOfDetailMinAge = 8;
 
+    private float PlantAliveTime = 0f;
 
     private Task RecreateMeshTask;
     CancellationTokenSource MeshTokenSource;
@@ -50,14 +51,12 @@ public class Plant : MonoBehaviour
         mesh.MarkDynamic();
 
         GetComponent<MeshFilter>().mesh = mesh;
-        RandomSeed = 112;
         Child = new Stem(this);
 
         MeshTokenSource = new CancellationTokenSource();
 
         //grow to start age
-        Child.Grow(GrowthStepTime * StartAge);
-
+        ApplyGrowthSteps(StartAge);
 
     }
 
@@ -72,6 +71,8 @@ public class Plant : MonoBehaviour
         return Mathf.FloorToInt(distToCamera);
     }
 
+    private float elapsedTime = 0f;
+
     private void Update()
     {
         if (Child == null)
@@ -83,9 +84,14 @@ public class Plant : MonoBehaviour
         var hasNewLodLevel = newLod != LodCutOff;
         LodCutOff = newLod;
 
-        var hasGrown = Child.Grow(Time.deltaTime);
+        elapsedTime += Time.deltaTime;
+        var steps = Mathf.FloorToInt(elapsedTime / GrowthStepTime);
+        steps = Mathf.Min(steps, MaxAge - Child.Age);
 
-        if (hasGrown || hasNewLodLevel)
+        bool hasGrown = ApplyGrowthSteps(steps);
+        elapsedTime -= GrowthStepTime * steps;
+
+        if (hasGrown)
         {
             //cancel previous token's task
             MeshTokenSource.Cancel();
@@ -101,6 +107,17 @@ public class Plant : MonoBehaviour
             UpdateMesh();
             RecreateMeshTask = null;
         }
+    }
+
+    private bool ApplyGrowthSteps(int steps)
+    {
+        bool hasGrown = false;
+        for (int i = 0; i < steps; i++)
+        {
+            hasGrown |= Child.Grow();
+        }
+
+        return hasGrown;
     }
 
     private void CreateMeshData(CancellationToken ct)

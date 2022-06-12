@@ -2,6 +2,7 @@ using Assets.PlantModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -16,51 +17,48 @@ public class Node : Growable
     public List<Growable> Children { get; set; } = new List<Growable> { };
 
 
-    public override bool ChildGrowth(float time)
+    public override bool ChildGrowth()
     {
         //logic to add more children
-        NaiveGrowthLogic();
+        SproutingLogic();
 
-        var childJustSprouted = Child.Grow(time);
+        var descendentGrowth = Child.Grow();
 
         foreach (var child in Children)
         {
-            childJustSprouted |= child.Grow(time);
+            descendentGrowth |= child.Grow();
         }
 
-        return JustSprouted || childJustSprouted;
+        return descendentGrowth;
     }
 
-    private void NaiveGrowthLogic()
+    private void SproutingLogic()
     {
         var rand = UnityEngine.Random.Range(0f, 1f);
 
-        if (Age >= 1 && !Sprouted)
+        if (Age >= 1)
         {
-            Sprouted = true;
-           
-            if (rand < 0.02f)
+            if (!Children.Any())
             {
-                Flowers(3);
-            }
-            else if (rand < 0.95f)
-            {
-                Leaves(3);
-                if (rand < 0.4)
+                if (rand < 0.02f)
+                {
+                    Flowers(3);
+                }
+                else if (rand < 0.5f)
+                {
+                    Leaves(3);
+                }
+                else if (rand < 1f)
                 {
                     StemTips(3);
                 }
-            }
-            else
-            {
-                StemTips(2);
+
             }
         }
     }
 
     private void Flowers(int n)
     {
-        Children = new List<Growable>();
         for (int i = 0; i < n; i++)
         {
             Children.Add(new Flower(Plant));
@@ -69,7 +67,6 @@ public class Node : Growable
 
     private void Leaves(int n)
     {
-        Children = new List<Growable>();
         for (int i = 0; i < n; i++)
         {
             Children.Add(new Leaf(Plant));
@@ -78,12 +75,11 @@ public class Node : Growable
 
     private void StemTips(int n)
     {
-        Children = new List<Growable>();
         for (int i = 0; i < n; i++)
         {
             Children.Add(new Stem(Plant)
             {
-                Age = -5
+                Age = -3
             });
         }
     }
@@ -99,7 +95,7 @@ public class Node : Growable
         var translation = renderContext.Translation;
 
         var radial = Quaternion.AngleAxis(CachedRandomValue(0, random) * 360f, rotation * Vector3.up);
-        var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, rotation * radial * Vector3.forward);
+        var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, radial * Vector3.forward);
 
         var offset = 0.5f * Height;
         RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
@@ -110,7 +106,7 @@ public class Node : Growable
             Rotation = ang * rotation,
         };
         childRenderContext.Distance = renderContext.Distance + Vector3.Distance(translation, childRenderContext.Translation);
-        
+
         Child.Render(data, random, childRenderContext, ct);
 
         var angle = 360f / Children.Count;
@@ -130,5 +126,10 @@ public class Node : Growable
 
             child.Render(data, random, childiRenderContext, ct);
         }
+    }
+
+    public override int TotalChildren()
+    {
+        return Children.Count + base.TotalChildren();
     }
 }

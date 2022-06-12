@@ -13,7 +13,7 @@ public class Leaf : Growable
 
     public override Growable Child { get; set; } = null;
 
-    public override bool ChildGrowth(float time)
+    public override bool ChildGrowth()
     {
         return false;
     }
@@ -22,8 +22,8 @@ public class Leaf : Growable
     {
         if (Age < 13)
         {
-            var leafRandom = 0.8f + 0.2f * CachedRandomValue(0, random);
-            RenderHelper.CreateLeaf(data, renderContext.Translation, renderContext.Rotation, (Age / 13f) * 0.5f * leafRandom);
+            var leafRandom = 0.9f + 0.1f * CachedRandomValue(0, random);
+            RenderHelper.CreateLeaf(data, renderContext.Translation, renderContext.Rotation, (Age / 13f) * 0.4f * leafRandom);
         }
     }
 }

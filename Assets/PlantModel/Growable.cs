@@ -15,50 +15,40 @@ public abstract class Growable : IRenderable
 
     public int Age { get; set; }
 
-    private float ElapsedTime { get; set; } = 0f;
+    private float ElapsedTime { get; set; }
 
-    /// <param name="time">Elapsed time</param>
+    /// <param name="time">Total Elapsed time</param>
     /// <returns>If we should re-render</returns>
-    public bool Grow(float time)
+    public bool Grow()
     {
-        ElapsedTime += time;
-
-        var startAge = Age;
-
-        if (ElapsedTime > Plant.GrowthStepTime && Age < Plant.MaxAge)
+        if (Age > Plant.MaxAge)
         {
-            var div = Mathf.FloorToInt(ElapsedTime / Plant.GrowthStepTime);
-            div = Mathf.Min(div, Plant.MaxAge - Age);
-
-            Age += div;
-            ElapsedTime -= Plant.GrowthStepTime * div;
+            return false;
         }
 
-        return Age < Plant.MaxAge && ChildGrowth(time);
+        Age += 1;
+        var before = TotalChildren();
+        var newDescedents = ChildGrowth();
+        var after = TotalChildren();
+        var newChild = before != after;
+
+        return newChild || newDescedents;
+
     }
 
-    public abstract bool ChildGrowth(float time);
-
-    private bool _justSprouted;
-    public bool JustSprouted { get { return _justSprouted; } }
-
-    private bool _sprouted;
-    public bool Sprouted
+    public int BranchLength()
     {
-        get { return _sprouted; }
-        set
-        {
-            _justSprouted = false;
-            if (!_sprouted && value)
-            {
-                _justSprouted = true;
-            }
-            _sprouted = value;
-        }
+        return Child == null ? 1 : 1 + Child.BranchLength();
+    }
+
+    public abstract bool ChildGrowth();
+    public virtual int TotalChildren()
+    {
+        return Child == null ? 0 : 1;
     }
 
     //remember angle so it does not change on re-render
-    private Dictionary<int, float> randomAngles = new Dictionary<int, float>();
+    private readonly Dictionary<int, float> randomAngles = new();
     public float CachedRandomValue(int i, System.Random random) {
         if (!randomAngles.ContainsKey(i))
         {
@@ -70,9 +60,6 @@ public abstract class Growable : IRenderable
     public void Reset()
     {
         Age = 0;
-        ElapsedTime = 0;
-        _justSprouted = false;
-        _sprouted = false;
     }
 
     public float Height { get { return CalcHeight(); } }

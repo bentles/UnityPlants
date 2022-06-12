@@ -14,7 +14,7 @@ public class Flower : Growable
 
     public override Growable Child { get; set; } = null;
 
-    public override bool ChildGrowth(float time)
+    public override bool ChildGrowth()
     {
         return false;
     }
