@@ -73,7 +73,7 @@ public class Stem : Growable
         Child = node;
     }
 
-    public override void Render(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
+    public override void Render(MeshData data, RenderContext renderContext, CancellationToken ct)
     {
         var translation = renderContext.Translation;
         var rotation = renderContext.Rotation;
@@ -93,7 +93,7 @@ public class Stem : Growable
         if (!Plant.LevelOfDetail ||
             (Plant.LevelOfDetail && Age > Mathf.Min(Plant.LodCutOff, Plant.LevelOfDetailMinAge)))
         {
-            RenderBranchSegment(data, random, renderContext, ct);
+            RenderBranchSegment(data, renderContext, ct);
         }
         else
         {
@@ -103,13 +103,13 @@ public class Stem : Growable
 
     }
 
-    private void RenderBranchSegment(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
+    private void RenderBranchSegment(MeshData data, RenderContext renderContext, CancellationToken ct)
     {
         var rotation = renderContext.Rotation;
         var translation = renderContext.Translation;
 
-        var radial = Quaternion.AngleAxis(CachedRandomValue(0, random) * 360f, rotation * Vector3.up);
-        var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, radial * Vector3.forward);
+        var radial = Quaternion.AngleAxis(Plant.GetRandom(Id, 0) * 360f, rotation * Vector3.up);
+        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 0) * 25f, radial * Vector3.forward);
 
         var offset = Height;
         RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
@@ -125,7 +125,7 @@ public class Stem : Growable
         //Debug.Log(CachedRandomValue(0, random));
         //Debug.Log(CachedRandomValue(1, random));
 
-        Child.Render(data, random, childRenderContext, ct);
+        Child.Render(data, childRenderContext, ct);
     }
 
     private void RenderTip(MeshData data, RenderContext renderContext)

@@ -18,11 +18,11 @@ public class Leaf : Growable
         return false;
     }
 
-    public override void Render(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
+    public override void Render(MeshData data, RenderContext renderContext, CancellationToken ct)
     {
         if (Age < 13)
         {
-            var leafRandom = 0.9f + 0.1f * CachedRandomValue(0, random);
+            var leafRandom = 0.9f + 0.1f * Plant.GetRandom(Id, 0);
             RenderHelper.CreateLeaf(data, renderContext.Translation, renderContext.Rotation, (Age / 13f) * 0.4f * leafRandom);
         }
     }

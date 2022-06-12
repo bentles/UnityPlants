@@ -19,7 +19,7 @@ public class Flower : Growable
         return false;
     }
 
-    public override void Render(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
+    public override void Render(MeshData data, RenderContext renderContext, CancellationToken ct)
     {
         //TODO:
     }

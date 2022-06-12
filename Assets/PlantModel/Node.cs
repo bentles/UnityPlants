@@ -84,7 +84,7 @@ public class Node : Growable
         }
     }
 
-    public override void Render(MeshData data, System.Random random, RenderContext renderContext, CancellationToken ct)
+    public override void Render(MeshData data, RenderContext renderContext, CancellationToken ct)
     {
         if (ct.IsCancellationRequested)
         {
@@ -94,8 +94,8 @@ public class Node : Growable
         var rotation = renderContext.Rotation;
         var translation = renderContext.Translation;
 
-        var radial = Quaternion.AngleAxis(CachedRandomValue(0, random) * 360f, rotation * Vector3.up);
-        var ang = Quaternion.AngleAxis(CachedRandomValue(1, random) * 25f, radial * Vector3.forward);
+        var radial = Quaternion.AngleAxis(Plant.GetRandom(Id ,0) * 360f, rotation * Vector3.up);
+        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 1) * 25f, radial * Vector3.forward);
 
         var offset = 0.5f * Height;
         RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
@@ -107,14 +107,14 @@ public class Node : Growable
         };
         childRenderContext.Distance = renderContext.Distance + Vector3.Distance(translation, childRenderContext.Translation);
 
-        Child.Render(data, random, childRenderContext, ct);
+        Child.Render(data, childRenderContext, ct);
 
         var angle = 360f / Children.Count;
-        var child_ang = Quaternion.AngleAxis(CachedRandomValue(2, random) * 45f, rotation * Vector3.forward);
+        var child_ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 2) * 45f, rotation * Vector3.forward);
         //iterate over children 
         for (int i = 0; i < Children.Count; i++)
         {
-            var rad = Quaternion.AngleAxis(CachedRandomValue(3 + i, random) + angle * i, rotation * Vector3.up);
+            var rad = Quaternion.AngleAxis(Plant.GetRandom(Id, 3 + i) + angle * i, rotation * Vector3.up);
             Growable child = Children[i];
 
             var childiRenderContext = new RenderContext
@@ -124,7 +124,7 @@ public class Node : Growable
             };
             childRenderContext.Distance = renderContext.Distance + Vector3.Distance(translation, childRenderContext.Translation);
 
-            child.Render(data, random, childiRenderContext, ct);
+            child.Render(data, childiRenderContext, ct);
         }
     }
 

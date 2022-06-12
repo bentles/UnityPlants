@@ -27,7 +27,8 @@ public class Plant : MonoBehaviour
     public float LevelOfDetailScale = 0.2f;
     public float LevelOfDetailMinAge = 8;
 
-    private float PlantAliveTime = 0f;
+    Dictionary<string, float> RenderRandomnessLookup = new();
+    System.Random RenderRandom;
 
     private Task RecreateMeshTask;
     CancellationTokenSource MeshTokenSource;
@@ -37,6 +38,8 @@ public class Plant : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        RenderRandom = new System.Random(RandomSeed);
+
         meshData = new MeshData()
         {
             Vertices = new List<Vector3>(),
@@ -69,6 +72,16 @@ public class Plant : MonoBehaviour
 
         float distToCamera = LevelOfDetailScale * Vector3.Distance(transform.position, cameraReference.transform.position);
         return Mathf.FloorToInt(distToCamera);
+    }
+
+    public float GetRandom(Guid growableId, int i)
+    {
+        var lookup = $"{growableId}{i}";
+        if (!RenderRandomnessLookup.ContainsKey(lookup))
+        {
+            return RenderRandomnessLookup[lookup] = (float)RenderRandom.NextDouble();
+        }
+        return RenderRandomnessLookup[lookup];
     }
 
     private float elapsedTime = 0f;
@@ -123,7 +136,7 @@ public class Plant : MonoBehaviour
     private void CreateMeshData(CancellationToken ct)
     {
         meshData.Clear();
-        RenderGrowable(Child, new System.Random(RandomSeed), ct);
+        RenderGrowable(Child, ct);
     }
 
     private void UpdateMesh()
@@ -140,7 +153,7 @@ public class Plant : MonoBehaviour
 
     //I would like for this to be a pure function (must take a seed for rng stuff)
     //I would like to be able to lerp between growables in any state and see the render transform... somehow
-    private void RenderGrowable(Growable g, System.Random random, CancellationToken ct)
+    private void RenderGrowable(Growable g, CancellationToken ct)
     {
         if (g is null || ct.IsCancellationRequested)
         {
@@ -154,7 +167,7 @@ public class Plant : MonoBehaviour
             Rotation = Quaternion.identity
         };
 
-        g.Render(meshData, random, renderContext, ct);
+        g.Render(meshData, renderContext, ct);
     }
 
 

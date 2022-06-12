@@ -5,5 +5,5 @@ using UnityEngine;
 
 internal interface IRenderable
 {
-    void Render(MeshData meshData, System.Random random, RenderContext renderContext, CancellationToken ct);
+    void Render(MeshData meshData, RenderContext renderContext, CancellationToken ct);
 }

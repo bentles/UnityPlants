@@ -9,13 +9,15 @@ public abstract class Growable : IRenderable
     public Growable(Plant plant)
     {
         Plant = plant;
+        Id = Guid.NewGuid();
     }
 
     public Plant Plant { get; }
 
     public int Age { get; set; }
 
-    private float ElapsedTime { get; set; }
+    public Guid Id { get; private set; }
+
 
     /// <param name="time">Total Elapsed time</param>
     /// <returns>If we should re-render</returns>
@@ -47,16 +49,6 @@ public abstract class Growable : IRenderable
         return Child == null ? 0 : 1;
     }
 
-    //remember angle so it does not change on re-render
-    private readonly Dictionary<int, float> randomAngles = new();
-    public float CachedRandomValue(int i, System.Random random) {
-        if (!randomAngles.ContainsKey(i))
-        {
-            return randomAngles[i] = (float)random.NextDouble();
-        }
-        return randomAngles[i];
-    } 
-
     public void Reset()
     {
         Age = 0;
@@ -74,7 +66,7 @@ public abstract class Growable : IRenderable
         return Plant.radiusCurve.Evaluate(age);
     }
 
-    public abstract void Render(MeshData meshData, System.Random random, RenderContext renderContext, CancellationToken ct);
+    public abstract void Render(MeshData meshData, RenderContext renderContext, CancellationToken ct);
 
     public abstract Growable Child { get; set; }
 
