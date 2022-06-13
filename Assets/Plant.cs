@@ -27,8 +27,10 @@ public class Plant : MonoBehaviour
     public float LevelOfDetailScale = 0.2f;
     public float LevelOfDetailMinAge = 8;
 
-    Dictionary<string, float> RenderRandomnessLookup = new();
-    System.Random RenderRandom;
+    private readonly Dictionary<string, float> renderRandomnessCache = new();
+    private readonly Dictionary<string, float> growthRandomnessCache = new();
+    private System.Random renderRandom;
+    private System.Random growthRandom;
 
     private Task RecreateMeshTask;
     CancellationTokenSource MeshTokenSource;
@@ -38,7 +40,8 @@ public class Plant : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        RenderRandom = new System.Random(RandomSeed);
+        renderRandom = new System.Random(RandomSeed);
+        growthRandom = new System.Random(RandomSeed);
 
         meshData = new MeshData()
         {
@@ -77,11 +80,21 @@ public class Plant : MonoBehaviour
     public float GetRandom(Guid growableId, int i)
     {
         var lookup = $"{growableId}{i}";
-        if (!RenderRandomnessLookup.ContainsKey(lookup))
+        if (!renderRandomnessCache.ContainsKey(lookup))
         {
-            return RenderRandomnessLookup[lookup] = (float)RenderRandom.NextDouble();
+            return renderRandomnessCache[lookup] = (float)renderRandom.NextDouble();
         }
-        return RenderRandomnessLookup[lookup];
+        return renderRandomnessCache[lookup];
+    }
+
+    public float GetGrowthRandom(Guid growableId, int i)
+    {
+        var lookup = $"{growableId}{i}";
+        if (!growthRandomnessCache.ContainsKey(lookup))
+        {
+            return growthRandomnessCache[lookup] = (float)growthRandom.NextDouble();
+        }
+        return growthRandomnessCache[lookup];
     }
 
     private float elapsedTime = 0f;

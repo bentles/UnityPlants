@@ -359,10 +359,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   cameraReference: {fileID: 330585545}
-  MaxAge: 28
-  StartAge: 27
-  RandomSeed: 429
-  GrowthStepTime: 1
+  MaxAge: 38
+  StartAge: 29
+  RandomSeed: 333
+  GrowthStepTime: 2.1
   LevelOfDetail: 1
   LevelOfDetailScale: 0.2
   LevelOfDetailMinAge: 8

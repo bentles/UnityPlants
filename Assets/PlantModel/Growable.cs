@@ -10,6 +10,8 @@ public abstract class Growable : IRenderable
     {
         Plant = plant;
         Id = Guid.NewGuid();
+        Plant.GetRandom(Id, 0);
+        Plant.GetRandom(Id, 1);
     }
 
     public Plant Plant { get; }

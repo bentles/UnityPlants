@@ -34,7 +34,7 @@ public class Node : Growable
 
     private void SproutingLogic()
     {
-        var rand = UnityEngine.Random.Range(0f, 1f);
+        var rand = Plant.GetGrowthRandom(Id, 0);
 
         if (Age >= 1)
         {
@@ -52,8 +52,12 @@ public class Node : Growable
                 {
                     StemTips(3);
                 }
-
             }
+        }
+
+        for (int i = 2; i < Children.Count * 2 + 2; i++)
+        {
+            Plant.GetRandom(Id, i);
         }
     }
 
@@ -110,11 +114,11 @@ public class Node : Growable
         Child.Render(data, childRenderContext, ct);
 
         var angle = 360f / Children.Count;
-        var child_ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 2) * 45f, rotation * Vector3.forward);
         //iterate over children 
         for (int i = 0; i < Children.Count; i++)
         {
-            var rad = Quaternion.AngleAxis(Plant.GetRandom(Id, 3 + i) + angle * i, rotation * Vector3.up);
+            var child_ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 2 + i) * 45f, rotation * Vector3.forward);
+            var rad = Quaternion.AngleAxis(Plant.GetRandom(Id, 2 + Children.Count + i) + angle * i, rotation * Vector3.up);
             Growable child = Children[i];
 
             var childiRenderContext = new RenderContext

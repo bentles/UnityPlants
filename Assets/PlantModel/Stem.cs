@@ -47,7 +47,7 @@ public class Stem : Growable
         // it is the tip so can grow:
         if (Age >= 2 && Child == null)
         {
-            var rand = UnityEngine.Random.Range(0, 1f);
+            var rand = Plant.GetGrowthRandom(Id, 0);
             if (rand < 0.1f)
             {
                 StemTip();
@@ -57,6 +57,8 @@ public class Stem : Growable
                 NodeStemTip();
             }
 
+            Plant.GetRandom(Id, 0);
+            Plant.GetRandom(Id, 1);
         }
     }
 
@@ -109,7 +111,7 @@ public class Stem : Growable
         var translation = renderContext.Translation;
 
         var radial = Quaternion.AngleAxis(Plant.GetRandom(Id, 0) * 360f, rotation * Vector3.up);
-        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 0) * 25f, radial * Vector3.forward);
+        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 1) * 25f, radial * Vector3.forward);
 
         var offset = Height;
         RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
