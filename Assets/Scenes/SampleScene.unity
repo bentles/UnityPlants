@@ -245,7 +245,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 108286095}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.3, y: 0, z: 0}
+  m_LocalPosition: {x: 0.14, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -359,13 +359,12 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   cameraReference: {fileID: 330585545}
-  MaxAge: 38
-  StartAge: 29
-  RandomSeed: 333
-  GrowthStepTime: 2.1
+  MaxAge: 28
+  StartAge: 27
+  RandomSeed: 311
+  GrowthStepTime: 0.3
   LevelOfDetail: 1
-  LevelOfDetailScale: 0.2
-  LevelOfDetailMinAge: 8
+  LevelOfDetailScale: 0.1
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0

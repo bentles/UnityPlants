@@ -25,7 +25,7 @@ public class Plant : MonoBehaviour
     public float GrowthStepTime = 0.3f;
     public bool LevelOfDetail = false;
     public float LevelOfDetailScale = 0.2f;
-    public float LevelOfDetailMinAge = 8;
+    public int LevelOfDetailAgeSteps = 5;
 
     private readonly Dictionary<string, float> renderRandomnessCache = new();
     private readonly Dictionary<string, float> growthRandomnessCache = new();
@@ -35,7 +35,8 @@ public class Plant : MonoBehaviour
     private Task RecreateMeshTask;
     CancellationTokenSource MeshTokenSource;
 
-    public int LodCutOff { get; set; } = int.MaxValue;
+    //everything younger than this will not be rendered
+    public int LodCutOffAge { get; set; } = int.MaxValue;
 
     // Start is called before the first frame update
     void Start()
@@ -62,19 +63,27 @@ public class Plant : MonoBehaviour
         MeshTokenSource = new CancellationTokenSource();
 
         //grow to start age
-        ApplyGrowthSteps(StartAge);
-
+        GrowBySteps(StartAge);
     }
 
-    internal int CalcLodCutoff()
+    internal bool CalcLodCutoff()
     {
         if (cameraReference == null)
         {
-            return 0;
+            return false;
         }
 
         float distToCamera = LevelOfDetailScale * Vector3.Distance(transform.position, cameraReference.transform.position);
-        return Mathf.FloorToInt(distToCamera);
+
+        var newCutoff = Mathf.RoundToInt(distToCamera / LevelOfDetailAgeSteps) * LevelOfDetailAgeSteps;
+        if (newCutoff != LodCutOffAge)
+        {
+            Debug.Log($"LOD {LodCutOffAge}");
+            LodCutOffAge = newCutoff;
+            return true;
+        }
+
+        return false;
     }
 
     public float GetRandom(Guid growableId, int i)
@@ -106,21 +115,15 @@ public class Plant : MonoBehaviour
             Start();
         }
 
-        var newLod = CalcLodCutoff();
-        var hasNewLodLevel = newLod != LodCutOff;
-        LodCutOff = newLod;
+        var lodChanged = CalcLodCutoff();
+        bool ageChanged = ApplyGrowthSteps();
 
-        elapsedTime += Time.deltaTime;
-        var steps = Mathf.FloorToInt(elapsedTime / GrowthStepTime);
-        steps = Mathf.Min(steps, MaxAge - Child.Age);
 
-        bool hasGrown = ApplyGrowthSteps(steps);
-        elapsedTime -= GrowthStepTime * steps;
-
-        if (hasGrown)
+        if (ageChanged || lodChanged)
         {
             //cancel previous token's task
             MeshTokenSource.Cancel();
+            MeshTokenSource.Dispose();
 
             MeshTokenSource = new CancellationTokenSource();
             var ct = MeshTokenSource.Token;
@@ -135,7 +138,18 @@ public class Plant : MonoBehaviour
         }
     }
 
-    private bool ApplyGrowthSteps(int steps)
+    private bool ApplyGrowthSteps()
+    {
+        elapsedTime += Time.deltaTime;
+        var steps = Mathf.FloorToInt(elapsedTime / GrowthStepTime);
+        steps = Mathf.Min(steps, MaxAge - Child.Age);
+        bool hasGrown = GrowBySteps(steps);
+        elapsedTime -= GrowthStepTime * steps;
+
+        return hasGrown;
+    }
+
+    private bool GrowBySteps(int steps)
     {
         bool hasGrown = false;
         for (int i = 0; i < steps; i++)
@@ -148,12 +162,15 @@ public class Plant : MonoBehaviour
 
     private void CreateMeshData(CancellationToken ct)
     {
+        Debug.Log($"Start render! at age: {Child.Age}");
         meshData.Clear();
         RenderGrowable(Child, ct);
     }
 
     private void UpdateMesh()
     {
+        System.Diagnostics.Stopwatch s = new();
+        s.Start();
         mesh.Clear();
         mesh.subMeshCount = 2;
         mesh.SetVertices(meshData.Vertices);
@@ -162,6 +179,8 @@ public class Plant : MonoBehaviour
 
         mesh.SetTriangles(meshData.LeafTriangles, 1);
         mesh.RecalculateNormals();
+        s.Stop();
+        Debug.Log($"time: {s.ElapsedMilliseconds}");
     }
 
     //I would like for this to be a pure function (must take a seed for rng stuff)
@@ -170,6 +189,7 @@ public class Plant : MonoBehaviour
     {
         if (g is null || ct.IsCancellationRequested)
         {
+            Debug.Log("Cancelled before render!");
             return;
         }
 
@@ -181,6 +201,15 @@ public class Plant : MonoBehaviour
         };
 
         g.Render(meshData, renderContext, ct);
+
+        if (ct.IsCancellationRequested)
+        {
+            Debug.Log("Cancelled during render!");
+        }
+        else
+        {
+            Debug.Log("Render completed!");
+        }
     }
 
 

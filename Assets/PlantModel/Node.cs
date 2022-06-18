@@ -97,9 +97,10 @@ public class Node : Growable
 
         var rotation = renderContext.Rotation;
         var translation = renderContext.Translation;
+        var stemMaxAngle = 25f;
 
         var radial = Quaternion.AngleAxis(Plant.GetRandom(Id ,0) * 360f, rotation * Vector3.up);
-        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 1) * 25f, radial * Vector3.forward);
+        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 1) * stemMaxAngle, radial * Vector3.forward);
 
         var offset = 0.5f * Height;
         RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);

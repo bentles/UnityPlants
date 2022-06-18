@@ -93,7 +93,7 @@ public class Stem : Growable
 
 
         if (!Plant.LevelOfDetail ||
-            (Plant.LevelOfDetail && Age > Mathf.Min(Plant.LodCutOff, Plant.LevelOfDetailMinAge)))
+            (Plant.LevelOfDetail && Age > Plant.LodCutOffAge))
         {
             RenderBranchSegment(data, renderContext, ct);
         }
@@ -109,9 +109,10 @@ public class Stem : Growable
     {
         var rotation = renderContext.Rotation;
         var translation = renderContext.Translation;
+        var stemMaxAngle = 25f;
 
         var radial = Quaternion.AngleAxis(Plant.GetRandom(Id, 0) * 360f, rotation * Vector3.up);
-        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 1) * 25f, radial * Vector3.forward);
+        var ang = Quaternion.AngleAxis(Plant.GetRandom(Id, 1) * stemMaxAngle, radial * Vector3.forward);
 
         var offset = Height;
         RenderHelper.CreateBranchSegment(data, renderContext, this, height: offset);
